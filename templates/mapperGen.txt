@@ -1,0 +1,45 @@
+{% autoescape false %}
+package {{entity.mapperGenPackage}};
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import {{entity.javaPackage}}.{{entity.javaClass}};
+
+@Mapper
+public interface {{entity.mapperGenClass}} {
+
+    {{entity.javaClass}} selectOne({{ keyFields(entity, true, false) }});
+
+    List<{{entity.javaClass}}> selectList({{keyFields(entity, true, true)}});
+
+    void insert(@Param("record"){{entity.javaClass}} record);
+
+    void update(@Param("record"){{entity.javaClass}} record);
+
+    void updateSelective(@Param("record"){{entity.javaClass}} record);
+
+    void delete({{ keyFields(entity, true, false) }});
+
+{% for key in entity.keys %}
+    {{key.type}} generate{{key.propertyName | capitalize}}({{keyFieldsForGenerateKey(entity, key, true)}});
+
+{% endfor %}
+}
+{##}
+{% macro keyFields(entity, withType, parentOnly) %}
+{% for key in entity.keys %}
+{% if (not parentOnly) or key.isParentKey %}{{loop.index == 0 ? '' : ', '}}{{withType ? '@Param("' + key.propertyName + '") ' + key.type + ' ' : ''}}{{key.propertyName}}{% endif %}
+{% endfor %}
+{% endmacro %}
+{##}
+{% macro keyFieldsForGenerateKey(entity, key, withType) %}
+{% for keyParam in entity.keys %}
+{% if key["`Integer.decode(keyId)`"] > keyParam["`Integer.decode(keyId)`"] %}
+{{withType ? key.type + ' ' : ''}}{{keyParam.propertyName}}{{key["`Integer.decode(keyId)`"] > keyParam["`Integer.decode(keyId)`"] - 1 ? '' : ', '}}
+{% endif %}
+{% endfor %}
+{% endmacro %}
+{% endautoescape %}

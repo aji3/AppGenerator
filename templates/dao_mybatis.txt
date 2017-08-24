@@ -1,0 +1,96 @@
+package {{entity.daoPackage}};
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import {{entity.mapperPackage}}.{{entity.mapperClass}};
+import {{entity.javaPackage}}.{{entity.javaClass}};
+
+@Component
+public class {{entity.daoClass}} {
+
+    @Autowired
+    private {{entity.mapperClass}} mapper;
+    
+    public {{entity.javaClass}} selectOne({{keyFields(entity, true, false, false)}}) {
+        return mapper.selectOne({{keyFields(entity, false, false, false)}});
+    }
+    
+    public List<{{entity.javaClass}}> selectList({{keyFields(entity, true, true, false)}}) {
+        return mapper.selectList({{keyFields(entity, false, true, false)}});
+    }
+    
+    public {{entity.javaClass}} insert({{entity.javaClass}} object) {
+        return insert(object, false);
+    }
+    
+    public {{entity.javaClass}} insert({{entity.javaClass}} object, boolean autoGenerateId) {
+        if (autoGenerateId) {
+            object.updateKey({{generators(entity)}});
+        }
+        mapper.insert(object);
+        return object;
+    }
+
+    public void update({{entity.javaClass}} object) {
+        mapper.update(object);
+    }
+
+    public void updatePartial({{entity.javaClass}} object) {
+        mapper.updateSelective(object);
+    }
+    
+    public {{entity.javaClass}} upsert({{entity.javaClass}} object) {
+        {{entity.javaClass}} registeredObject = mapper.selectOne({{keyFields(entity, false, false, true)}});
+        if (registeredObject == null) {
+            insert(object, false);
+            return object;
+        } else {
+            mapper.updateSelective(object);
+            return object;
+        }
+    }
+    
+    public void delete({{keyFields(entity, true, false, false)}}) {
+        mapper.delete({{keyFields(entity, false, false, false)}});
+    }
+
+{% for key in entity.keys %}
+{% if not key.isParentKey %}
+    public {{key.type}} {{generatorName(key)}}({{keyFieldsForGenerateKey(entity, key, true)}}) {
+        return mapper.{{generatorName(key)}}({{keyFieldsForGenerateKey(entity, key, false)}});
+    }
+
+{% endif %}
+{% endfor %}
+
+}
+{##}
+{% macro keyFields(entity, withType, parentOnly, byGetter) %}
+{% for key in entity.keys %}
+{% if (not parentOnly) or key.isParentKey %}{{loop.index == 0 ? '' : ', '}}{{withType ? key.type + ' ' : ''}}{{byGetter ? 'object.get' + key.propertyName | capitalize + '()' : key.propertyName}}{% endif %}
+{% endfor %}
+{% endmacro %}
+{##}
+{% macro generatorName(property) %}
+generate{{property.propertyName | capitalize}}
+{% endmacro %}
+{##}
+{% macro keyFieldsForGenerateKey(entity, key, withType, byGetter) %}
+{% for keyParam in entity.keys %}
+{% if key["`Integer.decode(keyId)`"] > keyParam["`Integer.decode(keyId)`"] %}
+{{withType ? key.type + ' ' : ''}}{{byGetter ? 'object.get' + keyParam.propertyName | capitalize + '()' : keyParam.propertyName}}{{key["`Integer.decode(keyId)`"] > keyParam["`Integer.decode(keyId)`"] - 1 ? '' : ', '}}
+{% endif %}
+{% endfor %}
+{% endmacro %}
+{##}
+{% macro generators(entity) %}
+{% for key in entity.keys %}
+{% if not key.isParentKey %}
+{{generatorName(key)}}({{keyFieldsForGenerateKey(entity, key, false, true)}}){% else %}
+null{% endif %}
+{{loop.index == loop.length - 1 ? '' : ', '}}
+{% endfor %}
+{% endmacro %}

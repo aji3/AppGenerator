@@ -1,0 +1,34 @@
+package {{entity.javaPackage}};
+
+import java.util.Date;
+import java.time.LocalDate;
+import lombok.Data;
+
+@Data
+public class {{entity.javaClass}} {
+{% for property in properties%}
+{% if property.type == 'Code'%}
+    public enum {{property.codeType}} {{"{"}}
+{%for code in entity.codeMaster[property.codeType].codes %}
+{{code.code}}, {% endfor %}{{"};"}} 
+{% endif %}
+{% endfor %}
+
+{% for property in properties%}
+    private {{property.type == 'Code' ? property.codeType : property.type}} {{property.propertyName}};
+{% endfor %}
+
+    public void updateKey({{keyFields(entity, true)}}) {
+{% for key in entity.keys %}
+        if ({{key.propertyName}} != null) {
+            this.{{key.propertyName}} = {{key.propertyName}};
+        }
+{% endfor %}
+    }
+}
+{##}
+{% macro keyFields(entity, withType) %}
+{% for key in entity.keys %}
+{{withType ? key.type + ' ' : ''}}{{key.propertyName}}{{loop.index == loop.length - 1 ? '' : ', '}}
+{% endfor %}
+{% endmacro %}

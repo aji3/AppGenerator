@@ -1,0 +1,63 @@
+package {{entity.apiPackage}};
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import {{entity.daoPackage}}.{{entity.daoClass}};
+import {{entity.javaPackage}}.{{entity.javaClass}};
+
+@RestController
+@RequestMapping(path="{{entity.apiUrl}}")
+public class {{entity.apiClass}} {
+
+    @Autowired
+    private {{entity.daoClass}} dao;
+    
+    @RequestMapping(path="/", method=RequestMethod.GET)
+    public List<{{entity.javaClass}}> getList({{keyFields(entity, true, true, true)}}) {
+        return dao.selectList({{keyFields(entity, false, false, true)}});
+    }
+    
+    @RequestMapping(path="{{apiUrlKeyFields(entity)}}", method=RequestMethod.GET)
+    public {{entity.javaClass}} getOne({{keyFields(entity, true, true, false)}}) {
+        return dao.selectOne({{keyFields(entity, false, false, false)}});
+    }
+    
+    @RequestMapping(path="/", method=RequestMethod.POST)
+    @Transactional
+    public {{entity.javaClass}} create(@RequestBody {{entity.javaClass}} object) {
+        return dao.insert(object, true);
+    }
+
+    @RequestMapping(path="{{apiUrlKeyFields(entity)}}", method=RequestMethod.PUT)
+    @Transactional
+    public {{entity.javaClass}} upsert({{keyFields(entity, true, true, false)}}, @RequestBody {{entity.javaClass}} object) {
+        object.updateKey({{keyFields(entity, false, false, false)}});
+        return dao.upsert(object);
+    }
+
+    @RequestMapping(path="{{apiUrlKeyFields(entity)}}", method=RequestMethod.DELETE)
+    public void delete({{keyFields(entity, true, true, false)}}) {
+        dao.delete({{keyFields(entity, false, false, false)}});
+    }
+}
+
+{##}
+{% macro keyFields(entity, withType, withPathVariable, parentOnly) %}
+{% for key in entity.keys %}
+{% if (not parentOnly) or key.isParentKey %}{{loop.index == 0 ? '' : ', '}}{{withPathVariable ? '@PathVariable ' : ''}}{{withType ? key.type + ' ' : ''}}{{key.propertyName}}{% endif %}
+{% endfor %}
+{% endmacro %}
+{##}
+{% macro apiUrlKeyFields(entity) %}
+{% for key in entity.keys %}
+{% if not key.isParentKey %}{{'/{' + key.propertyName + '}'}}{% endif %}
+{% endfor %}
+{% endmacro %}
