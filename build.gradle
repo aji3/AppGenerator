@@ -1,15 +1,19 @@
-
 apply plugin: 'application'
 
-mainClassName = 'com.xlbean.xltemplating.XlTemplatingMain'
+mainClassName = 'org.xlbean.xltemplating.XlTemplatingMain'
+
+run {
+	args '-f'
+	args 'AppDefinition.xlsx'
+}
 
 
 repositories {
 	mavenCentral()
-    maven { url "https://raw.github.com/aji3/xltemplating/mvn-repo/" }
-    maven { url "https://raw.github.com/aji3/xlbean/mvn-repo/" }
+	jcenter()
+    maven { url "https://dl.bintray.com/aji3/xlbean" }
 }
 
 dependencies {
-	compile 'org.xlbean:xltemplating:0.0.1'
+	compile 'org.xlbean:xltemplating:0.0.4'
 }
