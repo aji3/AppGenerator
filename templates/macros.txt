@@ -1,0 +1,17 @@
+{% macro keyFields(entity, withType, withPathVariable, byGetter) %}
+{% for key in entity.keys %}
+{{loop.index == 0 ? '' : ', '}}{{withPathVariable ? '@PathVariable ' : ''}}{{withType ? key.type + ' ' : ''}}{{byGetter ? 'object.get' + key.propertyName | capitalize + '()' : key.propertyName}}
+{% endfor %}
+{% endmacro %}
+{##}
+{% macro parentKeyFields(entity, withType, withPathVariable, byGetter) %}
+{% for key in entity.parentKeys %}
+{{loop.index == 0 ? '' : ', '}}{{withPathVariable ? '@PathVariable ' : ''}}{{withType ? key.type + ' ' : ''}}{{byGetter ? 'object.get' + key.propertyName | capitalize + '()' : key.propertyName}}
+{% endfor %}
+{% endmacro %}
+{##}
+{% macro apiUrlKeyFields(entity) %}
+{% for key in entity.keys %}
+{% if not key.isParentKey %}{{'/{' + key.propertyName + '}'}}{% endif %}
+{% endfor %}
+{% endmacro %}

@@ -1,3 +1,4 @@
+{% import "templates/macros.txt" %}
 package {{entity.daoPackage}};
 
 import java.util.List;
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import {{entity.mapperPackage}}.{{entity.mapperClass}};
 import {{entity.javaPackage}}.{{entity.javaClass}};
+import com.xlbean.xlgenapp.dao.DaoUtil;
 
 @Component
 public class {{entity.daoClass}} {
@@ -18,8 +20,8 @@ public class {{entity.daoClass}} {
         return mapper.selectOne({{keyFields(entity, false, false, false)}});
     }
     
-    public List<{{entity.javaClass}}> selectList({{keyFields(entity, true, true, false)}}) {
-        return mapper.selectList({{keyFields(entity, false, true, false)}});
+    public List<{{entity.javaClass}}> selectList({{parentKeyFields(entity, true, false, false)}}{{entity.parentKeys.size > 0 ? ', ' : ''}}int offset, int limit) {
+        return mapper.selectList({{parentKeyFields(entity, false, false, false)}}{{entity.parentKeys.size > 0 ? ', ' : ''}}offset, limit);
     }
     
     public {{entity.javaClass}} insert({{entity.javaClass}} object) {
@@ -30,15 +32,18 @@ public class {{entity.daoClass}} {
         if (autoGenerateId) {
             object.updateKey({{generators(entity)}});
         }
+        DaoUtil.updateSystemValueForInsert(object);
         mapper.insert(object);
         return object;
     }
 
     public void update({{entity.javaClass}} object) {
+        DaoUtil.updateSystemValueForUpdate(object);
         mapper.update(object);
     }
 
     public void updatePartial({{entity.javaClass}} object) {
+        DaoUtil.updateSystemValueForUpdate(object);
         mapper.updateSelective(object);
     }
     
@@ -48,6 +53,7 @@ public class {{entity.daoClass}} {
             insert(object, false);
             return object;
         } else {
+            DaoUtil.updateSystemValueForUpdate(object);
             mapper.updateSelective(object);
             return object;
         }
@@ -68,12 +74,6 @@ public class {{entity.daoClass}} {
 
 }
 {##}
-{% macro keyFields(entity, withType, parentOnly, byGetter) %}
-{% for key in entity.keys %}
-{% if (not parentOnly) or key.isParentKey %}{{loop.index == 0 ? '' : ', '}}{{withType ? key.type + ' ' : ''}}{{byGetter ? 'object.get' + key.propertyName | capitalize + '()' : key.propertyName}}{% endif %}
-{% endfor %}
-{% endmacro %}
-{##}
 {% macro generatorName(property) %}
 generate{{property.propertyName | capitalize}}
 {% endmacro %}
@@ -81,7 +81,7 @@ generate{{property.propertyName | capitalize}}
 {% macro keyFieldsForGenerateKey(entity, key, withType, byGetter) %}
 {% for keyParam in entity.keys %}
 {% if key["`Integer.decode(keyId)`"] > keyParam["`Integer.decode(keyId)`"] %}
-{{withType ? key.type + ' ' : ''}}{{byGetter ? 'object.get' + keyParam.propertyName | capitalize + '()' : keyParam.propertyName}}{{key["`Integer.decode(keyId)`"] > keyParam["`Integer.decode(keyId)`"] - 1 ? '' : ', '}}
+{{withType ? key.type + ' ' : ''}}{{byGetter ? 'object.get' + keyParam.propertyName | capitalize + '()' : keyParam.propertyName}}{{key["`Integer.decode(keyId)`"] - 1 > keyParam["`Integer.decode(keyId)`"] ? ', ' : ''}}
 {% endif %}
 {% endfor %}
 {% endmacro %}
