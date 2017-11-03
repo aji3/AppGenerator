@@ -15,3 +15,11 @@
 {% if not key.isParentKey %}{{'/{' + key.propertyName + '}'}}{% endif %}
 {% endfor %}
 {% endmacro %}
+{##}
+{% macro keyFieldsForGenerateKey(entity, key, withType, byGetter) %}
+{% for keyParam in entity.keys %}
+{% if key["`Integer.decode(keyId)`"] > keyParam["`Integer.decode(keyId)`"] %}
+{{withType ? key.type + ' ' : ''}}{{byGetter ? 'object.get' + keyParam.propertyName | capitalize + '()' : keyParam.propertyName}}{{key["`Integer.decode(keyId)`"] - 1 > keyParam["`Integer.decode(keyId)`"] ? ', ' : ''}}
+{% endif %}
+{% endfor %}
+{% endmacro %}

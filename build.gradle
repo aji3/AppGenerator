@@ -3,17 +3,17 @@ apply plugin: 'application'
 mainClassName = 'org.xlbean.xltemplating.XlTemplatingMain'
 
 run {
-	args '-f'
-	args 'AppDefinition.xlsx'
+    args '-f'
+    args 'AppDefinition.xlsx'
 }
 
 
 repositories {
-	mavenCentral()
-	jcenter()
+    mavenCentral()
+    jcenter()
     maven { url "https://dl.bintray.com/aji3/xlbean" }
 }
 
 dependencies {
-	compile 'org.xlbean:xltemplating:0.0.4'
+    compile 'org.xlbean:xltemplating:0.0.4'
 }
