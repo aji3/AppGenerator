@@ -1,12 +1,13 @@
-{% macro keyFields(entity, withType, withPathVariable, byGetter) %}
+{% autoescape false %}
+{% macro keyFields(entity, withType, withPathVariable, byGetter, withMyBatisParam) %}
 {% for key in entity.keys %}
-{{loop.index == 0 ? '' : ', '}}{{withPathVariable ? '@PathVariable ' : ''}}{{withType ? key.type + ' ' : ''}}{{byGetter ? 'object.get' + key.propertyName | capitalize + '()' : key.propertyName}}
+{{loop.index == 0 ? '' : ', '}}{{withPathVariable ? '@PathVariable ' : ''}}{{withMyBatisParam ? '@Param("' + key.propertyName + '") ' : ''}}{{withType ? key.type + ' ' : ''}}{{byGetter ? 'object.get' + key.propertyName | capitalize + '()' : key.propertyName}}
 {% endfor %}
 {% endmacro %}
 {##}
-{% macro parentKeyFields(entity, withType, withPathVariable, byGetter) %}
+{% macro parentKeyFields(entity, withType, withPathVariable, byGetter, withMyBatisParam) %}
 {% for key in entity.parentKeys %}
-{{loop.index == 0 ? '' : ', '}}{{withPathVariable ? '@PathVariable ' : ''}}{{withType ? key.type + ' ' : ''}}{{byGetter ? 'object.get' + key.propertyName | capitalize + '()' : key.propertyName}}
+{{loop.index == 0 ? '' : ', '}}{{withPathVariable ? '@PathVariable ' : ''}}{{withMyBatisParam ? '@Param("' + key.propertyName + '") ' : ''}}{{withType ? key.type + ' ' : ''}}{{byGetter ? 'object.get' + key.propertyName | capitalize + '()' : key.propertyName}}
 {% endfor %}
 {% endmacro %}
 {##}
@@ -23,3 +24,4 @@
 {% endif %}
 {% endfor %}
 {% endmacro %}
+{% endautoescape %}
